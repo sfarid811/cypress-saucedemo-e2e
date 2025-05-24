@@ -1,56 +1,38 @@
-name: ci
-on: push
+name: Cypress Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
 jobs:
-  # example running all tests on a single machine
-  test:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout 🛎
-        uses: actions/checkout@v4
+  cypress-run:
+    runs-on: ubuntu-latest
 
-      - name: Run Cypress tests 🧪
-        # https://github.com/cypress-io/github-action
-        uses: cypress-io/github-action@v5
-
-  # example splitting all tests across GitHub machines
-  prepare:
-    runs-on: ubuntu-22.04
-    # explicitly set the output of this job
-    # so that other jobs can use it
-    outputs:
-      matrix: ${{ steps.prepare.outputs.matrix }}
     steps:
-      # generate the list using a bash script
-      - name: Create matrix ⊹
-        id: prepare
-        # for reusable workflow, must use the full action reference
-        uses: bahmutov/gh-build-matrix@main
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          n: 3 # number of containers to output
+          node-version: 18
 
-      - name: Print result 🖨
-        run: echo '${{ steps.prepare.outputs.matrix }}'
+      - name: Install dependencies
+        run: npm ci
 
-  test-split:
-    needs: prepare
-    runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJSON(needs.prepare.outputs.matrix) }}
-    steps:
-      - name: Checkout 🛎
-        uses: actions/checkout@v4
-
-      - name: Print GitHub variables 🖨
-        run: npx @bahmutov/print-env GITHUB
-
-      - name: Print GitHub strategy context 🖨
-        run: echo '${{ toJSON(strategy) }}'
-
-      - name: Run split Cypress tests 🧪
-        # https://github.com/cypress-io/github-action
-        uses: cypress-io/github-action@v5
+      - name: Start the app
+        run: npm run start &
         env:
-          SPLIT: ${{ strategy.job-total }}
-          SPLIT_INDEX: ${{ strategy.job-index }}
-          DEBUG: cypress-split
+          CI: true
+
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:3000
+
+      - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm run start
+          wait-on: 'http://localhost:3000'
+          wait-on-timeout: 60
