@@ -1,0 +1,53 @@
+name: Cypress Tests with Dependency and Artifact Caching
+
+on: push
+
+jobs:
+  install:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          # Disable running of tests within install job
+          runTests: false
+          build: npm run build
+
+      - name: Save build folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          if-no-files-found: error
+          path: dist
+
+  cypress-run:
+    runs-on: ubuntu-22.04
+    needs: install
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the build folder
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Cypress run
+        uses: cypress-io/github-action@v6
+        with:
+          start: npm start
+          wait-on: 'http://localhost:4200'
+          wait-on-timeout: 60
+          browser: chrome
+
+      # Uncomment below only if you wish to use Cypress Cloud service and upload test results.
+      # Also note: This requires a Cypress Dashboard account and a project set up. Along with Github secrets set up.
+      # with the name CYPRESS_RECORD_KEY and the value as the record key from the Cypress Dashboard.
+      # - name: Upload test results
+      #   run: npx cypress run --record 
+      #   env:
+      #     CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
