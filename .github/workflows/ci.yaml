@@ -1,12 +1,17 @@
-name: Component tests
+name: Test with Docker cypress/included
 on: push
 jobs:
   cypress-run:
     runs-on: ubuntu-24.04
+    container:
+      # Cypress Docker image from https://hub.docker.com/r/cypress/included
+      # with Cypress globally pre-installed
+      image: cypress/included:latest
+      options: --user 1001
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Cypress run
-        uses: cypress-io/github-action@v6
+      - uses: actions/checkout@v4
+      - uses: cypress-io/github-action@v6
         with:
-          component: true
+          browser: chrome
+        env:
+          CYPRESS_INSTALL_BINARY: 0
