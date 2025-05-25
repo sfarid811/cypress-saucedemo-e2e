@@ -7,8 +7,8 @@ Given("l'utilisateur est connecté", () => {
     loginPage.submitLogin("standard_user", "secret_sauce");
   });
 
-  When("il ajoute le produit {string} au panier", (productName) => {
-    ProductsPage.addProductToCart(productName);
+  When("il ajoute le produit {string} au panier", (productName1) => {
+    ProductsPage.addProductToCart(productName1);
   }); 
 
   Then("le panier contient {int} article(s)", (count) => {
