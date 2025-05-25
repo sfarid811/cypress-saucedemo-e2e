@@ -5,8 +5,8 @@ Given("l'utilisateur accède à la page de connexion", () => {
   cy.visit("/");
 });
 
-When("il saisit le nom d'utilisateur {string}", (userName) => {
-    loginPage.typeUsername(userName);
+When("il saisit le nom d'utilisateur {string}", (username) => {
+    loginPage.typeUsername(username);
 });
 
 When('il saisit le mot de passe {string}', (password) => {
